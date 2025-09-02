@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Traffic Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fdbb2d;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .disclaimer {
+            background: rgba(179, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ff5252;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus {
+            outline: 2px solid #fdbb2d;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+        }
+        
+        .btn {
+            background: linear-gradient(to right, #2193b0, #6dd5ed);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-stop {
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+        }
+        
+        .status {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .log {
+            margin-top: 25px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .success {
+            color: #4caf50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+        
+        .info {
+            color: #2196f3;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Network Traffic Simulator</h1>
+        
+        <div class="disclaimer">
+            <strong>Important Disclaimer:</strong> This tool is for testing your own websites only. 
+            Unauthorized use against websites you don't own is illegal and unethical. 
+            Use responsibly and only with explicit permission.
+        </div>
+        
+        <div class="form-group">
+            <label for="targetUrl">Target URL (your domain)</label>
+            <input type="text" id="targetUrl" value="https://flgc.io" placeholder="https://yourdomain.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="requestRate">Requests per Second (per tab)</label>
+            <div class="slider-container">
+                <input type="range" id="requestRate" min="1" max="1000" value="5">
+                <span id="requestRateValue">5</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="maxTabs">Maximum Tabs to Open</label>
+            <input type="number" id="maxTabs" min="1" max="10" value="3">
+        </div>
+        
+        <button id="startBtn" class="btn">Start Simulation</button>
+        <button id="stopBtn" class="btn btn-stop">Stop Simulation</button>
+        
+        <div class="status">
+            <h3>Simulation Status: <span id="statusText">Not Running</span></h3>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div>Active Tabs</div>
+                    <div class="stat-value" id="activeTabs">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Total Requests</div>
+                    <div class="stat-value" id="totalRequests">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Successful</div>
+                    <div class="stat-value" id="successfulRequests">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Failed</div>
+                    <div class="stat-value" id="failedRequests">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="log">
+            <h3>Activity Log</h3>
+            <div id="logEntries"></div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>This tool is for educational and testing purposes only. Use responsibly.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const targetUrl = document.getElementById('targetUrl');
+            const requestRate = document.getElementById('requestRate');
+            const requestRateValue = document.getElementById('requestRateValue');
+            const maxTabs = document.getElementById('maxTabs');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusText = document.getElementById('statusText');
+            const activeTabs = document.getElementById('activeTabs');
+            const totalRequests = document.getElementById('totalRequests');
+            const successfulRequests = document.getElementById('successfulRequests');
+            const failedRequests = document.getElementById('failedRequests');
+            const logEntries = document.getElementById('logEntries');
+            
+            let isRunning = false;
+            let intervals = [];
+            let popups = [];
+            let requestCounters = {
+                total: 0,
+                success: 0,
+                failed: 0
+            };
+            
+            // Update slider value display
+            requestRate.addEventListener('input', function() {
+                requestRateValue.textContent = this.value;
+            });
+            
+            // Add log entry
+            function addLogEntry(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logEntries.appendChild(entry);
+                logEntries.scrollTop = logEntries.scrollHeight;
+            }
+            
+            // Update stats display
+            function updateStats() {
+                activeTabs.textContent = popups.length;
+                totalRequests.textContent = requestCounters.total;
+                successfulRequests.textContent = requestCounters.success;
+                failedRequests.textContent = requestCounters.failed;
+            }
+            
+            // Make a single request
+            async function makeRequest() {
+                const url = targetUrl.value;
+                if (!url) return;
+                
+                try {
+                    // Use fetch API to make the request
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        mode: 'no-cors', // Avoid CORS issues
+                        cache: 'no-store'
+                    });
+                    
+                    requestCounters.total++;
+                    requestCounters.success++;
+                    addLogEntry(`Request to ${url} succeeded`, 'success');
+                } catch (error) {
+                    requestCounters.total++;
+                    requestCounters.failed++;
+                    addLogEntry(`Request to ${url} failed: ${error.message}`, 'error');
+                }
+                
+                updateStats();
+            }
+            
+            // Start making requests at the specified rate
+            function startRequests() {
+                const rate = parseInt(requestRate.value);
+                const delay = Math.floor(1000 / rate);
+                
+                const interval = setInterval(makeRequest, delay);
+                intervals.push(interval);
+                
+                return interval;
+            }
+            
+            // Open a new popup window and start making requests from it
+            function openPopup() {
+                if (popups.length >= parseInt(maxTabs.value)) {
+                    addLogEntry('Maximum number of tabs reached', 'info');
+                    return null;
+                }
+                
+                const popup = window.open('', `popup-${popups.length}`, 'width=300,height=200');
+                if (!popup || popup.closed) {
+                    addLogEntry('Popup was blocked by browser', 'error');
+                    return null;
+                }
+                
+                // Write basic HTML to the popup
+                popup.document.write(`
+                    <html>
+                        <head><title>Traffic Simulator Tab</title></head>
+                        <body>
+                            <h3>Traffic Simulator Tab</h3>
+                            <p>Making requests to ${targetUrl.value}</p>
+                            <p>Requests per second: ${requestRate.value}</p>
+                        </body>
+                    </html>
+                `);
+                
+                // Start making requests from this popup
+                const interval = startRequests();
+                popups.push({ window: popup, interval: interval });
+                
+                addLogEntry(`Opened new tab #${popups.length}`, 'info');
+                updateStats();
+                
+                return popup;
+            }
+            
+            // Start the simulation
+            function startSimulation() {
+                if (isRunning) return;
+                
+                // Validate URL
+                if (!targetUrl.value || !targetUrl.value.startsWith('http')) {
+                    addLogEntry('Please enter a valid URL starting with http/https', 'error');
+                    return;
+                }
+                
+                isRunning = true;
+                statusText.textContent = 'Running';
+                startBtn.disabled = true;
+                
+                addLogEntry('Starting traffic simulation', 'info');
+                
+                // Start making requests from the main tab
+                const mainInterval = startRequests();
+                intervals.push(mainInterval);
+                
+                // Open additional tabs based on maxTabs setting
+                const tabsToOpen = parseInt(maxTabs.value);
+                for (let i = 0; i < tabsToOpen; i++) {
+                    setTimeout(() => openPopup(), i * 1000); // Stagger opening
+                }
+            }
+            
+            // Stop the simulation
+            function stopSimulation() {
+                if (!isRunning) return;
+                
+                isRunning = false;
+                statusText.textContent = 'Not Running';
+                startBtn.disabled = false;
+                
+                addLogEntry('Stopping traffic simulation', 'info');
+                
+                // Clear all intervals
+                intervals.forEach(interval => clearInterval(interval));
+                intervals = [];
+                
+                // Close all popups
+                popups.forEach(popup => {
+                    try {
+                        popup.window.close();
+                    } catch (e) {
+                        // Popup might already be closed
+                    }
+                });
+                popups = [];
+                
+                updateStats();
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startSimulation);
+            stopBtn.addEventListener('click', stopSimulation);
+            
+            // Add initial log entry
+            addLogEntry('Traffic simulator initialized. Ready to start.', 'info');
+        });
+    </script>
+</body>
+</html>
